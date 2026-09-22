@@ -3,7 +3,7 @@
 // ต้องตั้ง secret: LINE_CHANNEL_ID (Channel ID ของ LINE Login channel ที่มี LIFF app)
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const LINE_CHANNEL_ID = Deno.env.get('LINE_CHANNEL_ID') ?? '';
+const LINE_CHANNEL_ID = Deno.env.get('2011700777') ?? '';
 const sb = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
