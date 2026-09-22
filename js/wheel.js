@@ -148,6 +148,17 @@ const chime = (win) => { try { (win ? [523, 659, 784, 1047] : [523, 440]).forEac
 const pointer = $('pointer');
 function bump() { pointer.classList.remove('bump'); void pointer.offsetWidth; pointer.classList.add('bump'); }
 
+// ผลที่เครื่องนี้หมุนไปแล้ววันนี้ (โหมด 1 เครื่องหมุนได้ 1 ครั้ง/วัน)
+async function checkDevice() {
+  if (lineMode || myResult || !settings.one_spin_per_device) return;
+  const id = deviceId();
+  if (!id) return;
+  try {
+    const { data, error } = await sb.rpc('wheel_device_status', { p_device_id: id });
+    if (!error && data && data.status === 'already') myResult = data;
+  } catch (e) { console.error(e); }
+}
+
 // ---------- หมุน ----------
 async function spin() {
   if (myResult) { showResult(myResult); return; }
@@ -186,7 +197,7 @@ async function spin() {
     return;
   }
   if (res.status === 'already') {
-    spinning = false; if (lineMode) myResult = res;
+    spinning = false; myResult = res;
     setIdleStatus(); showResult(res);
     return;
   }
@@ -383,7 +394,11 @@ if (!configured) {
 } else {
   const fontReady = document.fonts?.load ? document.fonts.load('700 40px Mali') : Promise.resolve();
   Promise.all([fontReady, load()])
-    .then(() => (settings.require_line ? startLine() : null))
+    .then(async () => {
+      if (settings.require_line) return startLine();
+      await checkDevice();
+      setIdleStatus();
+    })
     .catch((e) => {
       console.error(e);
       $('status').textContent = lineMode
