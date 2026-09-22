@@ -1,4 +1,5 @@
 import { sb, configured } from './supabase.js';
+import { LINE_FUNCTION } from './config.js';
 
 const $ = (id) => document.getElementById(id);
 let prizes = [];
@@ -148,19 +149,19 @@ $('testLine').addEventListener('click', async () => {
   btn.disabled = true;
   out.textContent = 'กำลังทดสอบ…';
   try {
-    const { data, error } = await sb.functions.invoke('wheel-line-spin', { body: { action: 'status' } });
+    const { data, error } = await sb.functions.invoke(LINE_FUNCTION, { body: { action: 'status' } });
     if (!error) { out.textContent = `✅ ฟังก์ชันทำงานอยู่ (ตอบ ${data?.status || 'ok'})`; return; }
     const code = error.context?.status;
     const body = await error.context?.json?.().catch(() => null);
-    console.error('wheel-line-spin test', code, body, error);
+    console.error(`${LINE_FUNCTION} test`, code, body, error);
     if (body?.status === 'token_invalid') {
       out.textContent = '✅ ฟังก์ชันพร้อมใช้งาน (ตอบ token_invalid ถูกต้องแล้ว เพราะทดสอบจากหน้าแอดมินไม่มี LINE token)';
     } else if (body?.message?.includes('LINE_CHANNEL_ID')) {
       out.textContent = '⚠️ ติดตั้งฟังก์ชันแล้ว แต่ยังไม่ได้ตั้ง secret LINE_CHANNEL_ID (Edge Functions > Secrets)';
     } else if (code === 404) {
-      out.textContent = '❌ ยังไม่ได้ deploy ฟังก์ชัน wheel-line-spin (Supabase > Edge Functions)';
+      out.textContent = `❌ ไม่พบฟังก์ชันชื่อ "${LINE_FUNCTION}" ใน Supabase > Edge Functions (แก้ชื่อได้ที่ LINE_FUNCTION ใน js/config.js)`;
     } else if (!code) {
-      out.textContent = '❌ เรียกฟังก์ชันไม่ถึงเลย — ยังไม่ได้ deploy หรือถูกบล็อกก่อนถึงฟังก์ชัน ตรวจที่ Supabase > Edge Functions';
+      out.textContent = `❌ เรียกฟังก์ชัน "${LINE_FUNCTION}" ไม่ถึงเลย — ชื่อไม่ตรงกับที่ deploy ไว้ หรือถูกบล็อกก่อนถึงฟังก์ชัน`;
     } else {
       out.textContent = `❌ ฟังก์ชันตอบ ${code}: ${body?.message || error.message}`;
     }

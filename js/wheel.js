@@ -1,5 +1,5 @@
 import { sb, configured, CANDY_COLOR } from './supabase.js';
-import { LIFF_ID } from './config.js';
+import { LIFF_ID, LINE_FUNCTION } from './config.js';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('wheel');
@@ -338,14 +338,14 @@ function confetti() {
 
 // ---------- LINE (LIFF) ----------
 async function lineCall(action) {
-  const { data, error } = await sb.functions.invoke('wheel-line-spin', {
+  const { data, error } = await sb.functions.invoke(LINE_FUNCTION, {
     body: { action, idToken: liff.getIDToken(), accessToken: liff.getAccessToken() },
   });
   if (error) {
     // ฟังก์ชันตอบ 4xx/5xx พร้อม body ที่บอกสถานะ
     const body = await error.context?.json?.().catch(() => null);
     if (body && body.status) return body;
-    console.error('wheel-line-spin', error.context?.status, error);
+    console.error(LINE_FUNCTION, error.context?.status, error);
     const e = new Error(error.message || 'line call failed');
     e.code = error.context?.status || 0;   // 0 = เรียกฟังก์ชันไม่ถึง (ยังไม่ deploy / CORS / เน็ตหลุด)
     throw e;

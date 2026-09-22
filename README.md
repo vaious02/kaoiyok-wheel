@@ -53,9 +53,10 @@ LIFF และ LINE Login ใช้ฟรี หน้าเว็บให้�
 ### 2. Supabase
 
 1. SQL Editor > รัน `supabase/002_line_liff.sql`
-2. สร้าง Edge Function ชื่อ **`wheel-line-spin`**
-   - ทางหน้าเว็บ: Edge Functions > Deploy a new function > Via Editor > ตั้งชื่อ `wheel-line-spin` แล้ววางโค้ดจาก `supabase/functions/wheel-line-spin/index.ts`
+2. สร้าง Edge Function จากโค้ดใน `supabase/functions/wheel-line-spin/index.ts`
+   - ทางหน้าเว็บ: Edge Functions > Deploy a new function > Via Editor > วางโค้ด แล้ว **จดชื่อฟังก์ชันไว้** (Supabase ตั้งชื่อสุ่มให้ เช่น `hyper-responder` จะเปลี่ยนเป็น `wheel-line-spin` หรือใช้ชื่อสุ่มนั้นก็ได้)
    - หรือทาง CLI: `supabase functions deploy wheel-line-spin --project-ref cfmoqebpbzypkhplnqnr`
+   - ใส่ชื่อที่ได้ลงใน `LINE_FUNCTION` ที่ `js/config.js` ให้ตรงกัน
 3. Edge Functions > Secrets > เพิ่ม `LINE_CHANNEL_ID` = Channel ID จากข้อ 1.3
 4. ถ้า key ใน `js/config.js` ขึ้นต้นด้วย `sb_publishable_` (key แบบใหม่) ให้ปิด **Enforce JWT verification** ของฟังก์ชันนี้ ถ้าเป็น anon key แบบเดิม (ขึ้นต้นด้วย `eyJ`) ไม่ต้องแก้
 
@@ -71,10 +72,10 @@ LIFF และ LINE Login ใช้ฟรี หน้าเว็บให้�
 
 | รหัส | แปลว่า | แก้ยังไง |
 | --- | --- | --- |
-| `LINE-404` | ยังไม่มี Edge Function `wheel-line-spin` ในโปรเจกต์ Supabase | Deploy ตามข้อ 2.2 |
+| `LINE-404` | ไม่พบ Edge Function ชื่อที่ตั้งไว้ใน `LINE_FUNCTION` | Deploy ตามข้อ 2.2 หรือแก้ชื่อใน `js/config.js` ให้ตรง |
 | `LINE-401` | คำขอถูกปฏิเสธก่อนถึงฟังก์ชัน | ถ้า key ใน `js/config.js` ขึ้นต้นด้วย `sb_publishable_` ให้ปิด Enforce JWT verification ของฟังก์ชัน |
 | `LINE-500` | ฟังก์ชันรันแล้วพัง มักเพราะยังไม่ได้ตั้ง secret `LINE_CHANNEL_ID` หรือยังไม่ได้รัน `002_line_liff.sql` | ดูข้อ 2.1 และ 2.3 · ดู log ที่ Edge Functions > wheel-line-spin > Logs |
-| `LINE-0` | เรียกฟังก์ชันไม่ถึงเลย (เน็ตหลุด หรือ CORS) | ลองใหม่ ถ้ายังไม่หาย ดู log ของฟังก์ชัน |
+| `LINE-0` | เรียกฟังก์ชันไม่ถึงเลย มักเพราะชื่อใน `LINE_FUNCTION` ไม่ตรงกับที่ deploy ไว้ | เทียบชื่อที่ Supabase > Edge Functions แล้วแก้ `js/config.js` · กดปุ่ม "ทดสอบระบบ LINE" ในหน้าแอดมินดูผลได้ |
 
 ระหว่างที่ยังแก้ไม่ได้ ปิดสวิตช์ "ต้องล็อกอิน LINE ก่อนหมุน" ในหน้าแอดมิน กงล้อจะกลับมาหมุนได้ทันที (ใช้โหมด 1 เครื่อง/วัน แทนไปก่อน)
 
