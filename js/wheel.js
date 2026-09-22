@@ -149,6 +149,7 @@ function draw() {
   ctx.rotate((rot * Math.PI) / 180);
   const textR = R - 40;
   const maxW = R * 0.62;
+  const hubR = R * 0.30;   // ขอบวงในสุดที่ตัวหนังสือเข้าไปได้
   const arcH = 2 * Math.sin(seg / 2) * (R * 0.62);   // ความสูงช่องที่ตำแหน่งตัวหนังสือ
   const startSize = Math.min(44, Math.floor(arcH / 2.3));
   const minSize = Math.max(28, Math.floor(startSize * 0.7));   // ไม่ให้เล็กจนอ่านไม่ออก
@@ -163,14 +164,18 @@ function draw() {
 
     ctx.save();
     ctx.rotate(a0 + seg / 2);
-    ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#4A2E17';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#4A2E17';
     const label = slices[i].prize ? slices[i].label : `🍬 ${slices[i].label}`;
     const { lines, size } = fitLines(label, maxW, startSize, minSize);
     lastSize = size;
     ctx.font = `700 ${size}px Mali, sans-serif`;
     const lh = size * 1.12;
     // ส่ง maxW ให้ fillText ด้วย ถ้าวัดพลาดเบราว์เซอร์จะบีบตัวอักษรให้พอดีช่องเอง
-    lines.forEach((l, k) => ctx.fillText(l, textR, (k - (lines.length - 1) / 2) * lh, maxW));
+    lines.forEach((l, k) => {
+      const w = Math.min(ctx.measureText(l).width, maxW);
+      const x = Math.max(hubR, textR - w);        // ปลายคำจบที่ขอบใน ไม่ล้นออกนอกวง
+      ctx.fillText(l, x, (k - (lines.length - 1) / 2) * lh, maxW);
+    });
     ctx.restore();
   }
   if (DEBUG) showDebug(n, lastSize, maxW);

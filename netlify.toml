@@ -7,6 +7,23 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
+# ไฟล์หน้าเว็บกับสคริปต์ต้องเช็กเวอร์ชันใหม่ทุกครั้ง
+# (in-app browser ของ LINE บน iOS ชอบเก็บแคชไว้จนลูกค้าได้โค้ดเก่า)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
 [[headers]]
   for = "/admin.html"
   [headers.values]
