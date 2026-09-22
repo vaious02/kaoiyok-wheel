@@ -42,7 +42,6 @@ async function load(includeId = null) {
   prizes = p || [];
   if (s) settings = s;
   buildSlices();
-  renderList();
   draw();
   setIdleStatus();
 }
@@ -60,20 +59,6 @@ function buildSlices() {
     slices.push({ prize: p, color: p.color || '#FCE6D3', label: p.name });
     slices.push(candy());
   });
-}
-
-function renderList() {
-  const ul = $('prizeItems');
-  ul.innerHTML = '';
-  prizes.filter((p) => p.stock > 0).forEach((p) => {
-    const li = document.createElement('li');
-    li.innerHTML = '<span class="dot"></span><span class="nm"></span><span class="left"></span>';
-    li.querySelector('.dot').style.background = p.color;
-    li.querySelector('.nm').textContent = p.name;
-    li.querySelector('.left').textContent = `เหลือ ${p.stock}`;
-    ul.appendChild(li);
-  });
-  $('prizeList').hidden = ul.children.length === 0;
 }
 
 function setIdleStatus() {
