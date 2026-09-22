@@ -1,9 +1,11 @@
 // Supabase Edge Function: wheel-line-spin
 // ยืนยันตัวตน LINE จาก LIFF ฝั่งเซิร์ฟเวอร์ แล้วค่อยหมุน/เช็กผล
-// ต้องตั้ง secret: LINE_CHANNEL_ID (Channel ID ของ LINE Login channel ที่มี LIFF app)
+// Channel ID ของ LINE Login channel ที่มี LIFF app — ไม่ใช่ความลับ (เป็นส่วนหน้าของ LIFF ID อยู่แล้ว)
+// ใส่ค่าไว้ในโค้ดตรง DEFAULT ได้เลย หรือจะตั้ง secret ชื่อ LINE_CHANNEL_ID ทับก็ได้
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
-const LINE_CHANNEL_ID = Deno.env.get('2011700777') ?? '';
+const DEFAULT_CHANNEL_ID = '2011700777';
+const LINE_CHANNEL_ID = Deno.env.get('LINE_CHANNEL_ID') || DEFAULT_CHANNEL_ID;
 const sb = createClient(
   Deno.env.get('SUPABASE_URL')!,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
