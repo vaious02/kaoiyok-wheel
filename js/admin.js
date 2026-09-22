@@ -140,6 +140,37 @@ $('saveSettings').addEventListener('click', async () => {
   toast('บันทึกการตั้งค่าแล้ว');
 });
 
+// ---------- ทดสอบว่า Edge Function wheel-line-spin พร้อมใช้งานไหม ----------
+// เรียกโดยไม่มี LINE token ถ้าฟังก์ชันมีชีวิตจะตอบ token_invalid กลับมา
+$('testLine').addEventListener('click', async () => {
+  const btn = $('testLine');
+  const out = $('lineTestResult');
+  btn.disabled = true;
+  out.textContent = 'กำลังทดสอบ…';
+  try {
+    const { data, error } = await sb.functions.invoke('wheel-line-spin', { body: { action: 'status' } });
+    if (!error) { out.textContent = `✅ ฟังก์ชันทำงานอยู่ (ตอบ ${data?.status || 'ok'})`; return; }
+    const code = error.context?.status;
+    const body = await error.context?.json?.().catch(() => null);
+    console.error('wheel-line-spin test', code, body, error);
+    if (body?.status === 'token_invalid') {
+      out.textContent = '✅ ฟังก์ชันพร้อมใช้งาน (ตอบ token_invalid ถูกต้องแล้ว เพราะทดสอบจากหน้าแอดมินไม่มี LINE token)';
+    } else if (body?.message?.includes('LINE_CHANNEL_ID')) {
+      out.textContent = '⚠️ ติดตั้งฟังก์ชันแล้ว แต่ยังไม่ได้ตั้ง secret LINE_CHANNEL_ID (Edge Functions > Secrets)';
+    } else if (code === 404) {
+      out.textContent = '❌ ยังไม่ได้ deploy ฟังก์ชัน wheel-line-spin (Supabase > Edge Functions)';
+    } else if (!code) {
+      out.textContent = '❌ เรียกฟังก์ชันไม่ถึงเลย — ยังไม่ได้ deploy หรือถูกบล็อกก่อนถึงฟังก์ชัน ตรวจที่ Supabase > Edge Functions';
+    } else {
+      out.textContent = `❌ ฟังก์ชันตอบ ${code}: ${body?.message || error.message}`;
+    }
+  } catch (e) {
+    out.textContent = `❌ ทดสอบไม่สำเร็จ: ${e.message}`;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
 // ---------- ของรางวัล ----------
 function givenCount(id) { return spins.filter((s) => s.prize_id === id).length; }
 
