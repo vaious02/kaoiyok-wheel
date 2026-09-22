@@ -83,9 +83,43 @@ function setIdleStatus() {
 }
 
 // ---------- วาดกงล้อ ----------
+// ไม่ตัดหน้าสระบน-ล่าง/วรรณยุกต์ และไม่ทิ้งสระหน้า (เ แ โ ใ ไ) ไว้ท้ายบรรทัด
+const THAI_ABOVE_BELOW = /[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/;
+const THAI_LEADING_VOWEL = /[\u0E40-\u0E44]/;
+
+const thaiWords = typeof Intl !== 'undefined' && Intl.Segmenter
+  ? new Intl.Segmenter('th', { granularity: 'word' })
+  : null;
+
+function splitLabel(text) {
+  if (text.includes(' ')) return text.split(' ');
+  const ch = Array.from(text);
+  if (ch.length < 4) return [text];
+
+  // ตัดตามคำไทยจริง แล้วแบ่ง 2 บรรทัดให้ยาวใกล้กัน (เช่น น้ำมัน / เหลืองจิ๋ว)
+  if (thaiWords) {
+    const words = [...thaiWords.segment(text)].map((w) => w.segment);
+    let best = null;
+    for (let i = 1; i < words.length; i++) {
+      const a = words.slice(0, i).join('');
+      const b = words.slice(i).join('');
+      const gap = Math.abs(Array.from(a).length - Array.from(b).length);
+      if (!best || gap < best.gap) best = { gap, lines: [a, b] };
+    }
+    if (best) return best.lines;
+    return [text];   // คำเดียวจบ ไม่ตัดกลางคำ ปล่อยให้ย่อขนาดแทน
+  }
+
+  // เบราว์เซอร์เก่าที่ไม่มี Intl.Segmenter — ตัดกลางคำแบบไม่ให้สระลอย
+  let cut = Math.ceil(ch.length / 2);
+  while (cut < ch.length - 1 && THAI_ABOVE_BELOW.test(ch[cut])) cut++;
+  while (cut > 1 && THAI_LEADING_VOWEL.test(ch[cut - 1])) cut--;
+  return [ch.slice(0, cut).join(''), ch.slice(cut).join('')];
+}
+
 function fitLines(text, maxW, startSize, minSize) {
   let size = startSize;
-  const split = (t) => (t.includes(' ') ? t.split(' ') : [t]);
+  const split = splitLabel;
   let lines = [text];
   for (; size >= minSize; size -= 2) {
     ctx.font = `700 ${size}px Mali, sans-serif`;
@@ -411,7 +445,14 @@ if (!configured) {
   $('status').textContent = '';
   $('spin').disabled = $('hub').disabled = true;
 } else {
-  const fontReady = document.fonts?.load ? document.fonts.load('700 40px Mali') : Promise.resolve();
+  const fontReady = document.fonts?.load
+    ? Promise.all([
+        document.fonts.load('700 40px Mali', 'กขคง'),
+        document.fonts.load('600 40px Mali', 'กขคง'),
+      ])
+    : Promise.resolve();
+  // ฟอนต์มาช้า (เน็ตช้า / in-app browser) ให้วาดใหม่เมื่อโหลดเสร็จจริง
+  document.fonts?.ready?.then(() => draw());
   Promise.all([fontReady, load()])
     .then(async () => {
       if (settings.require_line) return startLine();
