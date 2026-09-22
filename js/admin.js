@@ -55,9 +55,10 @@ async function loadAll(auto = false) {
   const [p, s, sp] = await Promise.all([
     sb.from('wheel_prizes').select('*').order('sort_order').order('id'),
     sb.from('wheel_settings').select('*').eq('id', 1).single(),
-    sb.from('wheel_spins').select('id,prize_id,prize_name,is_consolation,created_at,line_name').order('created_at', { ascending: false }).limit(3000),
+    sb.from('wheel_spins').select('*').order('created_at', { ascending: false }).limit(3000),
   ]);
-  if (p.error || s.error || sp.error) { toast('โหลดข้อมูลไม่สำเร็จ', true); return; }
+  const bad = [p, s, sp].find((r) => r.error);
+  if (bad) { toast(`โหลดข้อมูลไม่สำเร็จ: ${bad.error.message}`, true); return; }
   prizes = p.data; settings = s.data; spins = sp.data;
   renderStats(); renderLog();
   // ตอนรีเฟรชอัตโนมัติ ไม่ทับค่าที่แอดมินกำลังแก้อยู่
@@ -90,7 +91,13 @@ function renderEstimate() {
     ? 'ของรางวัลหมดแล้ว ทุกคนจะได้รางวัลปลอบใจ'
     : `หมุน 10 ครั้ง ได้ของรางวัลประมาณ ${Math.round(winRate * 10)} ครั้ง · ของที่เหลือ ${left} ชิ้น จะหมดหลังหมุนราว ${Math.round(left / winRate).toLocaleString('th-TH')} ครั้ง`;
 }
+// คอลัมน์โหมด LINE มีเฉพาะเมื่อรัน supabase/002_line_liff.sql แล้ว
+const hasLineColumns = () => !!settings && 'require_line' in settings;
+
 function renderSettings() {
+  const line = hasLineColumns();
+  ['requireLine', 'requireFriend', 'friendUrl'].forEach((id) => { $(id).disabled = !line; });
+  $('lineSetupNote').hidden = line;
   $('lose').value = settings.lose_percent;
   $('candyName').value = settings.consolation_name;
   $('isOpen').checked = settings.is_open;
@@ -117,16 +124,18 @@ $('saveSettings').addEventListener('click', async () => {
     consolation_name: $('candyName').value.trim() || 'ลูกอม',
     is_open: $('isOpen').checked,
     one_spin_per_device: $('onePerDevice').checked,
-    require_line: $('requireLine').checked,
-    require_friend: $('requireFriend').checked,
-    line_add_friend_url: $('friendUrl').value.trim() || null,
     updated_at: new Date().toISOString(),
   };
-  if (patch.require_friend && patch.require_line && !patch.line_add_friend_url) {
-    return toast('ใส่ลิงก์แอดเพื่อน LINE OA ก่อน ลูกค้าจะได้กดแอดได้', true);
+  if (hasLineColumns()) {
+    patch.require_line = $('requireLine').checked;
+    patch.require_friend = $('requireFriend').checked;
+    patch.line_add_friend_url = $('friendUrl').value.trim() || null;
+    if (patch.require_friend && patch.require_line && !patch.line_add_friend_url) {
+      return toast('ใส่ลิงก์แอดเพื่อน LINE OA ก่อน ลูกค้าจะได้กดแอดได้', true);
+    }
   }
   const { error } = await sb.from('wheel_settings').update(patch).eq('id', 1);
-  if (error) return toast('บันทึกไม่สำเร็จ', true);
+  if (error) return toast(`บันทึกไม่สำเร็จ: ${error.message}`, true);
   settings = { ...settings, ...patch };
   toast('บันทึกการตั้งค่าแล้ว');
 });

@@ -89,6 +89,11 @@
           <label for="friendUrl">ลิงก์แอดเพื่อน LINE OA</label>
           <input class="input" id="friendUrl" type="url" inputmode="url" placeholder="https://lin.ee/xxxxxxx">
         </div>
+        <p class="hint" id="lineSetupNote" hidden>
+          ยังใช้โหมด LINE ไม่ได้ — ไปที่ Supabase &gt; SQL Editor แล้วรันไฟล์
+          <code>supabase/002_line_liff.sql</code> และ <code>supabase/003_device_status.sql</code> ก่อน
+          (สวิตช์อื่นใช้ได้ตามปกติ)
+        </p>
         <div class="row" style="margin-top:8px">
           <button class="btn primary" type="button" id="saveSettings">บันทึกการตั้งค่า</button>
         </div>
