@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#FFFBF5">
+  <title>หมุนกงล้อลุ้นรางวัล | เก้าอี้โยก</title>
+  <meta name="description" content="หมุนกงล้อลุ้นของรางวัลจากศูนย์ดูแลผู้สูงอายุเก้าอี้โยก">
+  <meta property="og:title" content="หมุนกงล้อลุ้นรางวัล | เก้าอี้โยก">
+  <meta property="og:description" content="ลุ้นน้ำมันเหลือง น้ำมันเขียว สบู่เหลว แชมพู และอีกเพียบ ไม่ได้ของรางวัลก็รับลูกอมกลับบ้าน">
+  <meta property="og:image" content="assets/logo.png">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="wheel-page">
+    <header class="brand">
+      <img src="assets/logo.png" alt="เก้าอี้โยก KAO I YOK Elderly Care">
+      <div>
+        <h1>หมุนกงล้อ ลุ้นของรางวัล</h1>
+        <p>ไม่ได้ของรางวัล รับลูกอมกลับบ้านแทน</p>
+        <p class="greet" id="greet" hidden></p>
+      </div>
+    </header>
+
+    <div class="wheel-wrap">
+      <svg class="pointer" id="pointer" viewBox="0 0 44 58" aria-hidden="true">
+        <path d="M22 56 L4 16 A19 19 0 1 1 40 16 Z" fill="#5E3A1E"/>
+        <circle cx="22" cy="18" r="7" fill="#FCE6D3"/>
+      </svg>
+      <canvas id="wheel" width="1000" height="1000" role="img" aria-label="กงล้อรางวัล"></canvas>
+      <button class="hub" id="hub" type="button" aria-label="หมุนกงล้อ">หมุน!</button>
+    </div>
+
+    <section class="friend-gate" id="friendGate" hidden>
+      <p>แอดเพื่อน LINE เก้าอี้โยกก่อน แล้วกลับมาหมุนได้เลย</p>
+      <a class="spin-btn line" id="addFriend" href="#" target="_blank" rel="noopener">แอดเพื่อน LINE</a>
+      <button class="btn" id="recheck" type="button">แอดแล้ว ตรวจสอบอีกครั้ง</button>
+    </section>
+
+    <button class="spin-btn" id="spin" type="button">หมุนกงล้อ</button>
+    <p class="status" id="status" aria-live="polite">กำลังโหลดของรางวัล…</p>
+
+    <section class="prize-list" id="prizeList" hidden>
+      <h2>ของรางวัลที่ยังเหลือ</h2>
+      <ul id="prizeItems"></ul>
+    </section>
+
+    <p class="setup-note" id="setupNote" hidden>
+      ยังไม่ได้ใส่ Supabase anon key ในไฟล์ <code>js/config.js</code> — ดูวิธีตั้งค่าใน README
+    </p>
+  </main>
+
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="rPrize">
+    <div class="result">
+      <div class="emoji" id="rEmoji">🎉</div>
+      <p class="lead" id="rLead">ยินดีด้วย! คุณได้รับ</p>
+      <p class="prize" id="rPrize"></p>
+      <p class="claim" id="rClaim"></p>
+      <button class="ok" id="rOk" type="button">ตกลง</button>
+    </div>
+  </div>
+  <canvas id="confetti"></canvas>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" charset="utf-8"></script>
+  <script type="module" src="js/wheel.js"></script>
+</body>
+</html>

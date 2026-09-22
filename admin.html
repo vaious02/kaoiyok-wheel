@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#FFFBF5">
+  <title>หลังบ้านกงล้อ | เก้าอี้โยก</title>
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="admin">
+    <header class="admin-top">
+      <img src="assets/logo.png" alt="">
+      <h1>หลังบ้านกงล้อ<span class="who" id="who"></span></h1>
+      <a class="btn" href="./" target="_blank" rel="noopener">เปิดกงล้อ</a>
+    </header>
+
+    <!-- เข้าสู่ระบบ -->
+    <section class="panel" id="loginPanel" hidden>
+      <h2>เข้าสู่ระบบแอดมิน</h2>
+      <p class="hint">ใช้อีเมลและรหัสผ่านที่สร้างไว้ใน Supabase</p>
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="email">อีเมล</label>
+          <input class="input" id="email" type="email" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="password">รหัสผ่าน</label>
+          <input class="input" id="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn primary" type="submit" id="loginBtn">เข้าสู่ระบบ</button>
+        <p class="error-text" id="loginErr" role="alert"></p>
+      </form>
+    </section>
+
+    <section class="panel" id="notAdmin" hidden>
+      <h2>บัญชีนี้ยังไม่มีสิทธิ์แอดมิน</h2>
+      <p class="hint">เพิ่มอีเมลนี้ในตาราง wheel_admins ก่อน แล้วเข้าสู่ระบบใหม่ (ดู README)</p>
+      <button class="btn" type="button" data-logout>ออกจากระบบ</button>
+    </section>
+
+    <div id="app" hidden>
+      <!-- สรุป -->
+      <section class="panel">
+        <h2>ภาพรวมวันนี้</h2>
+        <p class="hint" id="updatedAt"></p>
+        <div class="stats">
+          <div class="stat"><b id="sSpins">0</b><span>หมุนวันนี้</span></div>
+          <div class="stat"><b id="sWins">0</b><span>ได้ของรางวัล</span></div>
+          <div class="stat"><b id="sCandy">0</b><span>ได้ลูกอม</span></div>
+        </div>
+        <div class="row">
+          <button class="btn" type="button" id="refresh">รีเฟรช</button>
+        </div>
+      </section>
+
+      <!-- ตั้งค่า -->
+      <section class="panel">
+        <h2>ตั้งค่ากงล้อ</h2>
+        <div class="field">
+          <label for="lose">โอกาสได้รางวัลปลอบใจ</label>
+          <div class="range-row">
+            <input type="range" id="lose" min="0" max="95" step="5">
+            <output id="loseOut" for="lose">70%</output>
+          </div>
+          <p class="estimate" id="estimate"></p>
+        </div>
+        <div class="field">
+          <label for="expected">คาดว่าวันนี้จะมีคนหมุนอีกประมาณกี่ครั้ง</label>
+          <div class="row">
+            <input class="input" id="expected" type="number" min="1" inputmode="numeric" style="width:120px">
+            <button class="btn" type="button" id="suggest">ตั้งโอกาสให้ของพอทั้งวัน</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="candyName">ชื่อรางวัลปลอบใจ</label>
+          <input class="input" id="candyName" maxlength="30">
+        </div>
+        <label class="switch"><input type="checkbox" id="isOpen"> เปิดให้หมุน</label>
+        <label class="switch"><input type="checkbox" id="onePerDevice"> 1 เครื่องหมุนได้ 1 ครั้งต่อวัน (ใช้เมื่อไม่ได้เปิดโหมด LINE)</label>
+        <label class="switch"><input type="checkbox" id="requireLine"> ต้องล็อกอิน LINE ก่อนหมุน (1 บัญชี LINE หมุนได้ 1 ครั้งต่อวัน)</label>
+        <label class="switch"><input type="checkbox" id="requireFriend"> ต้องแอดเพื่อน LINE OA ก่อนหมุน</label>
+        <div class="field">
+          <label for="friendUrl">ลิงก์แอดเพื่อน LINE OA</label>
+          <input class="input" id="friendUrl" type="url" inputmode="url" placeholder="https://lin.ee/xxxxxxx">
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="btn primary" type="button" id="saveSettings">บันทึกการตั้งค่า</button>
+        </div>
+      </section>
+
+      <!-- ของรางวัล -->
+      <section class="panel">
+        <h2>ของรางวัลและจำนวนคงเหลือ</h2>
+        <p class="hint">แก้ชื่อ สี หรือจำนวน แล้วระบบบันทึกให้อัตโนมัติ ของที่ปิดไว้หรือเหลือ 0 จะไม่แสดงบนกงล้อ</p>
+        <ul class="prize-edit" id="prizeRows"></ul>
+        <form class="row" id="addForm" style="margin-top:12px">
+          <input class="input" id="newName" placeholder="ชื่อของรางวัลใหม่" style="flex:1;min-width:160px" maxlength="40" required>
+          <input class="input" id="newStock" type="number" min="0" inputmode="numeric" placeholder="จำนวน" style="width:96px" required>
+          <button class="btn primary" type="submit">เพิ่มของรางวัล</button>
+        </form>
+      </section>
+
+      <!-- ประวัติ -->
+      <section class="panel">
+        <h2>ผลการหมุนล่าสุด</h2>
+        <p class="hint">ใช้เทียบรหัสบนหน้าจอลูกค้าตอนแจกของ</p>
+        <ul class="log" id="log"></ul>
+        <div class="row" style="margin-top:12px">
+          <button class="btn danger" type="button" id="clearLog">ล้างประวัติการหมุนทั้งหมด</button>
+          <button class="btn" type="button" data-logout>ออกจากระบบ</button>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
