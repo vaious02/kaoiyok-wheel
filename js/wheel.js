@@ -180,7 +180,7 @@ async function spin() {
   } catch (err) {
     console.error(err);
     spinning = false; setIdleStatus();
-    $('status').textContent = 'เชื่อมต่อไม่สำเร็จ ลองกดหมุนอีกครั้ง';
+    $('status').textContent = lineMode ? lineError(err) : 'เชื่อมต่อไม่สำเร็จ ลองกดหมุนอีกครั้ง';
     return;
   }
 
@@ -311,9 +311,21 @@ async function lineCall(action) {
     // ฟังก์ชันตอบ 4xx/5xx พร้อม body ที่บอกสถานะ
     const body = await error.context?.json?.().catch(() => null);
     if (body && body.status) return body;
-    throw error;
+    console.error('wheel-line-spin', error.context?.status, error);
+    const e = new Error(error.message || 'line call failed');
+    e.code = error.context?.status || 0;   // 0 = เรียกฟังก์ชันไม่ถึง (ยังไม่ deploy / CORS / เน็ตหลุด)
+    throw e;
   }
   return data;
+}
+
+// ข้อความบอกสาเหตุ พร้อมรหัสสั้น ๆ ให้แจ้งเจ้าหน้าที่ได้
+function lineError(err) {
+  const code = err && err.code;
+  if (code === 404) return 'ยังไม่ได้ติดตั้งฟังก์ชัน LINE ที่เซิร์ฟเวอร์ แจ้งเจ้าหน้าที่ที่บูธได้เลย (LINE-404)';
+  if (code === 401 || code === 403) return 'ฟังก์ชัน LINE ปฏิเสธคำขอ แจ้งเจ้าหน้าที่ที่บูธได้เลย (LINE-401)';
+  if (code >= 500) return 'ระบบ LINE ฝั่งเซิร์ฟเวอร์ขัดข้อง แจ้งเจ้าหน้าที่ที่บูธได้เลย (LINE-500)';
+  return 'เชื่อมต่อ LINE ไม่สำเร็จ ลองปิดแล้วเปิดหน้านี้ใหม่ (LINE-0)';
 }
 
 function relogin() {
@@ -366,7 +378,14 @@ async function startLine() {
     $('greet').hidden = false;
   } catch {}
 
-  const st = await lineCall('status');
+  let st;
+  try {
+    st = await lineCall('status');
+  } catch (err) {
+    blocked = lineError(err);
+    setIdleStatus();
+    return;
+  }
   if (st.status === 'token_invalid') { relogin(); return; }
   try { sessionStorage.removeItem('kaoiyok-relogin'); } catch {}
   blocked = null;
