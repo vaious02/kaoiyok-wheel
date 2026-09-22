@@ -129,6 +129,17 @@ function fitLines(text, maxW, startSize, minSize) {
   return { lines, size: Math.max(size, minSize) };
 }
 
+const DEBUG = new URLSearchParams(location.search).has('debug');
+
+function showDebug(n, size, maxW) {
+  const note = $('setupNote');
+  ctx.font = '700 44px Mali, sans-serif';
+  const probe = Math.round(ctx.measureText('น้ำมันเหลือง').width);
+  const has = document.fonts?.check?.('700 44px Mali', 'กขคง');
+  note.textContent = `ช่อง ${n} · ตัวอักษร ${size}px · กว้างสุด ${Math.round(maxW)} · วัดที่ 44px ได้ ${probe} · โหลดฟอนต์ไทย ${has}`;
+  note.hidden = false;
+}
+
 function draw() {
   const n = slices.length;
   const seg = (Math.PI * 2) / n;
@@ -140,6 +151,8 @@ function draw() {
   const maxW = R * 0.62;
   const arcH = 2 * Math.sin(seg / 2) * (R * 0.62);   // ความสูงช่องที่ตำแหน่งตัวหนังสือ
   const startSize = Math.min(44, Math.floor(arcH / 2.3));
+  const minSize = Math.max(28, Math.floor(startSize * 0.7));   // ไม่ให้เล็กจนอ่านไม่ออก
+  let lastSize = startSize;
 
   for (let i = 0; i < n; i++) {
     const a0 = i * seg - Math.PI / 2;
@@ -152,12 +165,16 @@ function draw() {
     ctx.rotate(a0 + seg / 2);
     ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#4A2E17';
     const label = slices[i].prize ? slices[i].label : `🍬 ${slices[i].label}`;
-    const { lines, size } = fitLines(label, maxW, startSize, 22);
+    const { lines, size } = fitLines(label, maxW, startSize, minSize);
+    lastSize = size;
     ctx.font = `700 ${size}px Mali, sans-serif`;
     const lh = size * 1.12;
-    lines.forEach((l, k) => ctx.fillText(l, textR, (k - (lines.length - 1) / 2) * lh));
+    // ส่ง maxW ให้ fillText ด้วย ถ้าวัดพลาดเบราว์เซอร์จะบีบตัวอักษรให้พอดีช่องเอง
+    lines.forEach((l, k) => ctx.fillText(l, textR, (k - (lines.length - 1) / 2) * lh, maxW));
     ctx.restore();
   }
+  if (DEBUG) showDebug(n, lastSize, maxW);
+
   for (let i = 0; i < n; i++) {
     const a = i * seg - Math.PI / 2;
     ctx.beginPath(); ctx.arc(Math.cos(a) * (R - 15), Math.sin(a) * (R - 15), 8, 0, Math.PI * 2);
